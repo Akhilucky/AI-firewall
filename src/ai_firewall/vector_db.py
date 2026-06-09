@@ -14,7 +14,11 @@ import faiss
 
 from ai_firewall.config import config
 from ai_firewall.models import AttackType, RetrievedEvidence
-from ai_firewall.data.attack_patterns import ATTACK_PATTERNS, SAFE_PROMPTS, SECURITY_POLICIES
+from ai_firewall.data.attack_patterns import (
+    ATTACK_PATTERNS,
+    SAFE_PROMPTS,
+    SECURITY_POLICIES,
+)
 
 logger = logging.getLogger("ai_firewall.vector_db")
 
@@ -22,7 +26,7 @@ logger = logging.getLogger("ai_firewall.vector_db")
 class VectorStore:
     """
     FAISS-backed vector store for the AI Firewall.
-    
+
     Stores embeddings of:
     - Known attack patterns (prompt injection, jailbreak, etc.)
     - Safe prompt examples (for calibration)
@@ -54,7 +58,9 @@ class VectorStore:
 
     def embed(self, texts: list[str]) -> np.ndarray:
         """Generate normalized embeddings for a list of texts."""
-        embeddings = self.model.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
+        embeddings = self.model.encode(
+            texts, convert_to_numpy=True, normalize_embeddings=True
+        )
         return embeddings.astype("float32")
 
     def add_texts(self, texts: list[str], metadata_list: list[dict]) -> None:
@@ -76,14 +82,16 @@ class VectorStore:
     ) -> list[tuple[dict, float]]:
         """
         Search for similar entries in the vector store.
-        
+
         Returns list of (metadata, similarity_score) tuples, sorted by score descending.
         """
         if self.index.ntotal == 0:
             return []
 
         query_embedding = self.embed([query])
-        scores, indices = self.index.search(query_embedding, min(top_k * 2, self.index.ntotal))
+        scores, indices = self.index.search(
+            query_embedding, min(top_k * 2, self.index.ntotal)
+        )
 
         results = []
         for score, idx in zip(scores[0], indices[0]):
@@ -114,21 +122,22 @@ class VectorStore:
 
         evidence = []
         for meta, score in results:
-            evidence.append(RetrievedEvidence(
-                text=meta["text"],
-                attack_type=AttackType(meta["attack_type"]),
-                similarity_score=round(score, 4),
-                source="vector_db",
-            ))
+            evidence.append(
+                RetrievedEvidence(
+                    text=meta["text"],
+                    attack_type=AttackType(meta["attack_type"]),
+                    similarity_score=round(score, 4),
+                    source="vector_db",
+                )
+            )
         return evidence
 
-    def search_policies(self, query: str, top_k: int = 3) -> list[tuple[str, str, float]]:
+    def search_policies(
+        self, query: str, top_k: int = 3
+    ) -> list[tuple[str, str, float]]:
         """Search for relevant security policies."""
         results = self.search(query, top_k=top_k, filter_type="policy")
-        return [
-            (meta["text"], meta["policy_name"], score)
-            for meta, score in results
-        ]
+        return [(meta["text"], meta["policy_name"], score) for meta, score in results]
 
     def initialize(self) -> None:
         """
@@ -145,12 +154,14 @@ class VectorStore:
         attack_meta = []
         for text, attack_type, description in ATTACK_PATTERNS:
             attack_texts.append(text)
-            attack_meta.append({
-                "type": "attack",
-                "text": text,
-                "attack_type": attack_type.value,
-                "description": description,
-            })
+            attack_meta.append(
+                {
+                    "type": "attack",
+                    "text": text,
+                    "attack_type": attack_type.value,
+                    "description": description,
+                }
+            )
 
         if attack_texts:
             self.add_texts(attack_texts, attack_meta)
@@ -161,11 +172,13 @@ class VectorStore:
         safe_meta = []
         for text, description in SAFE_PROMPTS:
             safe_texts.append(text)
-            safe_meta.append({
-                "type": "safe",
-                "text": text,
-                "description": description,
-            })
+            safe_meta.append(
+                {
+                    "type": "safe",
+                    "text": text,
+                    "description": description,
+                }
+            )
 
         if safe_texts:
             self.add_texts(safe_texts, safe_meta)
@@ -176,20 +189,20 @@ class VectorStore:
         policy_meta = []
         for text, policy_name in SECURITY_POLICIES:
             policy_texts.append(text)
-            policy_meta.append({
-                "type": "policy",
-                "text": text,
-                "policy_name": policy_name,
-            })
+            policy_meta.append(
+                {
+                    "type": "policy",
+                    "text": text,
+                    "policy_name": policy_name,
+                }
+            )
 
         if policy_texts:
             self.add_texts(policy_texts, policy_meta)
             logger.info(f"Loaded {len(policy_texts)} security policies")
 
         self._initialized = True
-        logger.info(
-            f"Vector store initialized: {self.index.ntotal} total entries"
-        )
+        logger.info(f"Vector store initialized: {self.index.ntotal} total entries")
 
     @property
     def stats(self) -> dict:

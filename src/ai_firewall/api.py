@@ -13,7 +13,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from ai_firewall.models import AnalyzeRequest, FirewallReport, FirewallAction, ThreatLevel
+from ai_firewall.models import (
+    AnalyzeRequest,
+    FirewallReport,
+    FirewallAction,
+    ThreatLevel,
+)
 from ai_firewall.orchestrator import FirewallOrchestrator
 from ai_firewall.config import config
 
@@ -58,6 +63,7 @@ app.add_middleware(
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
+
 class HealthResponse(BaseModel):
     status: str
     mode: str
@@ -87,6 +93,7 @@ class RedTeamSummary(BaseModel):
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
+
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check():
     """Check if the AI Firewall is running and healthy."""
@@ -102,7 +109,7 @@ async def health_check():
 async def analyze_prompt(request: AnalyzeRequest):
     """
     Run full firewall analysis on a prompt.
-    
+
     Returns a complete FirewallReport with:
     - Retrieval evidence from vector DB
     - Guard Agent threat classification
@@ -147,7 +154,7 @@ async def quick_analyze(request: QuickAnalyzeRequest):
 async def run_red_team():
     """
     Execute the full red-team adversarial test suite.
-    
+
     Returns a summary of test results including pass/fail for each attack type.
     Red-team outputs NEVER bypass policies.
     """
@@ -171,7 +178,9 @@ async def run_red_team():
                     "label": r.label,
                     "expected_action": r.expected_action.value,
                     "actual_action": r.actual_action.value if r.actual_action else None,
-                    "actual_threat_level": r.actual_threat_level.value if r.actual_threat_level else None,
+                    "actual_threat_level": r.actual_threat_level.value
+                    if r.actual_threat_level
+                    else None,
                     "passed": r.passed,
                 }
                 for r in results

@@ -5,7 +5,6 @@ Rich-powered terminal interface for live firewall testing and analysis.
 
 from __future__ import annotations
 
-import sys
 import time
 import logging
 
@@ -13,13 +12,15 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from rich.columns import Columns
-from rich.layout import Layout
-from rich.live import Live
 from rich.align import Align
 from rich import box
 
-from ai_firewall.models import FirewallAction, ThreatLevel, FirewallReport, RedTeamResult
+from ai_firewall.models import (
+    FirewallAction,
+    ThreatLevel,
+    FirewallReport,
+    RedTeamResult,
+)
 from ai_firewall.orchestrator import FirewallOrchestrator
 from ai_firewall.config import config
 
@@ -76,10 +77,7 @@ def print_status_bar(orchestrator: FirewallOrchestrator):
     table.add_row("🛡️  Mode", f"[bold]{config.mode.upper()}[/bold]")
     table.add_row("📊 Vectors", str(stats["total_entries"]))
     table.add_row("🎯 Threshold", f"{config.similarity_threshold}")
-    table.add_row(
-        "⚡ Status",
-        "[bold green]OPERATIONAL[/bold green]"
-    )
+    table.add_row("⚡ Status", "[bold green]OPERATIONAL[/bold green]")
 
     console.print(Panel(table, title="[bold]System Status[/bold]", border_style="cyan"))
 
@@ -97,7 +95,7 @@ def format_report(report: FirewallReport) -> Panel:
     header.append(f"{action.value}", style=f"bold {action_color}")
     header.append(f"   {ICONS[threat]} Threat: ", style="bold")
     header.append(f"{threat.value}", style=f"bold {threat_color}")
-    header.append(f"   🎯 Confidence: ", style="bold")
+    header.append("   🎯 Confidence: ", style="bold")
     header.append(f"{report.overall_confidence:.1%}", style="bold white")
     header.append(f"   ⏱️  {report.processing_time_ms:.0f}ms", style="dim")
     header.append("\n")
@@ -115,7 +113,13 @@ def format_report(report: FirewallReport) -> Panel:
     evidence_table.add_column("Pattern", width=50, no_wrap=True)
 
     for e in report.retrieval.evidence[:5]:
-        sim_color = "red" if e.similarity_score >= 0.7 else "yellow" if e.similarity_score >= 0.5 else "green"
+        sim_color = (
+            "red"
+            if e.similarity_score >= 0.7
+            else "yellow"
+            if e.similarity_score >= 0.5
+            else "green"
+        )
         evidence_table.add_row(
             e.attack_type.value,
             f"[{sim_color}]{e.similarity_score:.3f}[/{sim_color}]",
@@ -138,15 +142,20 @@ def format_report(report: FirewallReport) -> Panel:
 
     for kw in report.guard.keyword_matches:
         signals_table.add_row(
-            "[red]Keyword[/red]",
-            f"'{kw.keyword}' at position {kw.position}"
+            "[red]Keyword[/red]", f"'{kw.keyword}' at position {kw.position}"
         )
 
     for sig in report.guard.heuristic_signals:
-        sev_color = "red" if sig.severity >= 0.7 else "yellow" if sig.severity >= 0.4 else "green"
+        sev_color = (
+            "red"
+            if sig.severity >= 0.7
+            else "yellow"
+            if sig.severity >= 0.4
+            else "green"
+        )
         signals_table.add_row(
             f"[{sev_color}]Heuristic[/{sev_color}]",
-            f"[{sev_color}]{sig.rule_name}[/{sev_color}]: {sig.description}"
+            f"[{sev_color}]{sig.rule_name}[/{sev_color}]: {sig.description}",
         )
 
     if not report.guard.keyword_matches and not report.guard.heuristic_signals:
@@ -158,21 +167,28 @@ def format_report(report: FirewallReport) -> Panel:
         policy_text.append(f"  • {rule}\n", style="bold")
 
     # ── Compose Panel ─────────────────────────────────────────────────────
-    border = "red" if action == FirewallAction.BLOCK else "yellow" if action == FirewallAction.SANITIZE else "green"
+    border = (
+        "red"
+        if action == FirewallAction.BLOCK
+        else "yellow"
+        if action == FirewallAction.SANITIZE
+        else "green"
+    )
 
     content = Text()
     content.append_text(header)
 
-    return Panel(
-        Align.left(
-            Text.from_markup(
-                f"{header.plain}\n"
-            )
+    return (
+        Panel(
+            Align.left(Text.from_markup(f"{header.plain}\n")),
+            title=f"[bold {border}]━━━ Firewall Report [{report.request_id}] ━━━[/bold {border}]",
+            border_style=border,
+            padding=(0, 1),
         ),
-        title=f"[bold {border}]━━━ Firewall Report [{report.request_id}] ━━━[/bold {border}]",
-        border_style=border,
-        padding=(0, 1),
-    ), evidence_table, signals_table, policy_text
+        evidence_table,
+        signals_table,
+        policy_text,
+    )
 
 
 def print_report(report: FirewallReport):
@@ -183,7 +199,13 @@ def print_report(report: FirewallReport):
     threat = report.threat_level
     action_color = COLORS[action]
     threat_color = COLORS[threat]
-    border = "red" if action == FirewallAction.BLOCK else "yellow" if action == FirewallAction.SANITIZE else "green"
+    border = (
+        "red"
+        if action == FirewallAction.BLOCK
+        else "yellow"
+        if action == FirewallAction.SANITIZE
+        else "green"
+    )
 
     # Prompt preview
     prompt_preview = report.original_prompt
@@ -260,7 +282,9 @@ def print_redteam_results(results: list[RedTeamResult]):
     pass_rate = passed / total if total > 0 else 0
 
     # Summary header
-    rate_color = "green" if pass_rate >= 0.9 else "yellow" if pass_rate >= 0.7 else "red"
+    rate_color = (
+        "green" if pass_rate >= 0.9 else "yellow" if pass_rate >= 0.7 else "red"
+    )
     console.print()
     console.print(
         Panel(
@@ -295,8 +319,14 @@ def print_redteam_results(results: list[RedTeamResult]):
     for r in results:
         status_icon = "✅" if r.passed else "❌"
         label_style = "red bold" if r.label == "ATTACK" else "green bold"
-        actual_color = COLORS.get(r.actual_action, "white") if r.actual_action else "white"
-        threat_color = COLORS.get(r.actual_threat_level, "white") if r.actual_threat_level else "white"
+        actual_color = (
+            COLORS.get(r.actual_action, "white") if r.actual_action else "white"
+        )
+        threat_color = (
+            COLORS.get(r.actual_threat_level, "white")
+            if r.actual_threat_level
+            else "white"
+        )
 
         table.add_row(
             status_icon,
@@ -325,7 +355,9 @@ def run_interactive():
     print_banner()
 
     console.print("[bold cyan]Initializing AI Firewall...[/bold cyan]")
-    with console.status("[bold cyan]Loading embedding model & vector database...", spinner="dots"):
+    with console.status(
+        "[bold cyan]Loading embedding model & vector database...", spinner="dots"
+    ):
         start = time.perf_counter()
         fw = FirewallOrchestrator()
         elapsed = time.perf_counter() - start
@@ -352,7 +384,9 @@ def run_interactive():
     while True:
         console.print()
         try:
-            user_input = console.input("[bold cyan]🛡️  Enter prompt ❯ [/bold cyan]").strip()
+            user_input = console.input(
+                "[bold cyan]🛡️  Enter prompt ❯ [/bold cyan]"
+            ).strip()
         except (KeyboardInterrupt, EOFError):
             console.print("\n[bold]Goodbye! 👋[/bold]")
             break
@@ -389,8 +423,10 @@ def run_interactive():
             stats = fw.vector_store.stats
             console.print(
                 Panel(
-                    f"[bold]Entries by type:[/bold]\n" +
-                    "\n".join(f"  • {k}: {v}" for k, v in stats["entries_by_type"].items()),
+                    "[bold]Entries by type:[/bold]\n"
+                    + "\n".join(
+                        f"  • {k}: {v}" for k, v in stats["entries_by_type"].items()
+                    ),
                     title="[bold]📊 Vector DB Stats[/bold]",
                     border_style="blue",
                 )

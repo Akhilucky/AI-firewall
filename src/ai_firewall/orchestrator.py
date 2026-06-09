@@ -13,10 +13,8 @@ from typing import Optional
 
 from ai_firewall.models import (
     AnalyzeRequest,
-    FirewallAction,
     FirewallReport,
     RedTeamResult,
-    ThreatLevel,
 )
 from ai_firewall.agents.retrieval_agent import RetrievalAgent
 from ai_firewall.agents.guard_agent import GuardAgent
@@ -31,12 +29,12 @@ logger = logging.getLogger("ai_firewall.orchestrator")
 class FirewallOrchestrator:
     """
     The main orchestration layer for the AI Firewall.
-    
+
     Coordinates the agent pipeline:
     1. Retrieval Agent — RAG-based evidence search
     2. Guard Agent    — multi-signal threat classification
     3. Policy Agent   — final allow/block/sanitize decision
-    
+
     Optional:
     4. Red-Team Agent — adversarial testing
     """
@@ -56,10 +54,10 @@ class FirewallOrchestrator:
     def analyze(self, request: AnalyzeRequest) -> FirewallReport:
         """
         Run the complete firewall analysis pipeline on a prompt.
-        
+
         Args:
             request: AnalyzeRequest containing the prompt and metadata.
-            
+
         Returns:
             FirewallReport with complete analysis and decision.
         """
@@ -75,7 +73,9 @@ class FirewallOrchestrator:
         guard_verdict = self.guard_agent.analyze(prompt, retrieval_result)
 
         # ── Step 3: Policy Agent ──────────────────────────────────────────
-        policy_decision = self.policy_agent.decide(prompt, guard_verdict, retrieval_result)
+        policy_decision = self.policy_agent.decide(
+            prompt, guard_verdict, retrieval_result
+        )
 
         # ── Compute overall confidence ────────────────────────────────────
         overall_confidence = self._compute_overall_confidence(
@@ -118,7 +118,7 @@ class FirewallOrchestrator:
     def run_red_team(self) -> list[RedTeamResult]:
         """
         Execute the full red-team test suite against the firewall.
-        
+
         Returns:
             List of RedTeamResult objects with pass/fail status.
         """

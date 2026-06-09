@@ -28,11 +28,14 @@ class ThreatScorer:
             max_sim = retrieval.max_similarity
             match_count_bonus = min(len(retrieval.matched_attack_types) * 0.15, 0.3)
             strong_matches = sum(
-                1 for e in retrieval.evidence
+                1
+                for e in retrieval.evidence
                 if e.similarity_score >= config.similarity_threshold
             )
             strength_bonus = min(strong_matches * 0.1, 0.2)
-            vector_similarity = round(min(max_sim + match_count_bonus + strength_bonus, 1.0), 4)
+            vector_similarity = round(
+                min(max_sim + match_count_bonus + strength_bonus, 1.0), 4
+            )
         else:
             vector_similarity = 0.0
 
@@ -43,7 +46,8 @@ class ThreatScorer:
         heuristic_signals = report.guard.heuristic_signals
         if heuristic_signals:
             heuristic_score = round(
-                sum(s.severity for s in heuristic_signals) / max(len(heuristic_signals), 1),
+                sum(s.severity for s in heuristic_signals)
+                / max(len(heuristic_signals), 1),
                 4,
             )
         else:

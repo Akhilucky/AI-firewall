@@ -11,7 +11,6 @@ import re
 import time
 
 from ai_firewall.models import (
-    AttackType,
     GuardVerdict,
     HeuristicSignal,
     KeywordMatch,
@@ -26,12 +25,12 @@ logger = logging.getLogger("ai_firewall.guard_agent")
 class GuardAgent:
     """
     Guard Agent — the primary threat classifier.
-    
+
     Combines three signal sources:
     1. Vector similarity scores from the Retrieval Agent
     2. Keyword-based pattern matching
     3. Heuristic rules (structural analysis)
-    
+
     Produces a weighted threat score and classification.
     """
 
@@ -41,11 +40,11 @@ class GuardAgent:
     def analyze(self, prompt: str, retrieval: RetrievalResult) -> GuardVerdict:
         """
         Analyze a prompt and produce a threat classification.
-        
+
         Args:
             prompt: The user's input prompt
             retrieval: Evidence from the Retrieval Agent
-            
+
         Returns:
             GuardVerdict with threat level, confidence, and reasoning.
         """
@@ -63,7 +62,8 @@ class GuardAgent:
         heuristic_signals = self._run_heuristics(prompt)
         heuristic_score = (
             sum(s.severity for s in heuristic_signals) / max(len(heuristic_signals), 1)
-            if heuristic_signals else 0.0
+            if heuristic_signals
+            else 0.0
         )
 
         # ── Weighted Threat Score ─────────────────────────────────────────
@@ -85,8 +85,13 @@ class GuardAgent:
 
         # ── Reasoning ─────────────────────────────────────────────────────
         reasoning = self._build_reasoning(
-            threat_level, threat_score, vector_score, keyword_matches,
-            heuristic_signals, retrieval, confidence
+            threat_level,
+            threat_score,
+            vector_score,
+            keyword_matches,
+            heuristic_signals,
+            retrieval,
+            confidence,
         )
 
         elapsed = (time.perf_counter() - start) * 1000
@@ -117,7 +122,8 @@ class GuardAgent:
         match_count_bonus = min(len(retrieval.matched_attack_types) * 0.15, 0.3)
         # Boost if multiple strong matches exist
         strong_matches = sum(
-            1 for e in retrieval.evidence
+            1
+            for e in retrieval.evidence
             if e.similarity_score >= config.similarity_threshold
         )
         strength_bonus = min(strong_matches * 0.1, 0.2)
@@ -142,11 +148,13 @@ class GuardAgent:
                     ctx_end = min(len(search_text), pos + len(keyword) + 20)
                     context = search_text[ctx_start:ctx_end]
 
-                    matches.append(KeywordMatch(
-                        keyword=keyword,
-                        position=pos,
-                        context=f"...{context}...",
-                    ))
+                    matches.append(
+                        KeywordMatch(
+                            keyword=keyword,
+                            position=pos,
+                            context=f"...{context}...",
+                        )
+                    )
                     break  # Found in one form, no need to check the other
 
         return matches
@@ -159,11 +167,13 @@ class GuardAgent:
 
         # Rule 1: Excessive length
         if len(prompt) > config.max_prompt_length:
-            signals.append(HeuristicSignal(
-                rule_name="excessive_length",
-                description=f"Prompt exceeds {config.max_prompt_length} chars ({len(prompt)} chars)",
-                severity=0.4,
-            ))
+            signals.append(
+                HeuristicSignal(
+                    rule_name="excessive_length",
+                    description=f"Prompt exceeds {config.max_prompt_length} chars ({len(prompt)} chars)",
+                    severity=0.4,
+                )
+            )
 
         # Rule 2: Contains role assignment patterns
         role_patterns = [
@@ -174,11 +184,13 @@ class GuardAgent:
         ]
         for pattern in role_patterns:
             if re.search(pattern, prompt, re.IGNORECASE):
-                signals.append(HeuristicSignal(
-                    rule_name="role_assignment",
-                    description=f"Detected role assignment pattern: /{pattern}/",
-                    severity=0.7,
-                ))
+                signals.append(
+                    HeuristicSignal(
+                        rule_name="role_assignment",
+                        description=f"Detected role assignment pattern: /{pattern}/",
+                        severity=0.7,
+                    )
+                )
                 break
 
         # Rule 3: Contains system/instruction framing
@@ -190,27 +202,31 @@ class GuardAgent:
         ]
         for pattern in system_patterns:
             if re.search(pattern, prompt, re.IGNORECASE):
-                signals.append(HeuristicSignal(
-                    rule_name="system_framing",
-                    description=f"Detected fake system message framing: /{pattern}/",
-                    severity=0.85,
-                ))
+                signals.append(
+                    HeuristicSignal(
+                        rule_name="system_framing",
+                        description=f"Detected fake system message framing: /{pattern}/",
+                        severity=0.85,
+                    )
+                )
                 break
 
         # Rule 4: Contains encoded or obfuscated content
         obfuscation_patterns = [
-            r"\\x[0-9a-fA-F]{2}",       # hex escape
-            r"\\u[0-9a-fA-F]{4}",       # unicode escape
+            r"\\x[0-9a-fA-F]{2}",  # hex escape
+            r"\\u[0-9a-fA-F]{4}",  # unicode escape
             r"base64[:=]\s*[A-Za-z0-9+/=]{20,}",
-            r"&#\d{2,4};",              # HTML entities
+            r"&#\d{2,4};",  # HTML entities
         ]
         for pattern in obfuscation_patterns:
             if re.search(pattern, prompt):
-                signals.append(HeuristicSignal(
-                    rule_name="obfuscation_detected",
-                    description="Prompt contains encoded or obfuscated content",
-                    severity=0.6,
-                ))
+                signals.append(
+                    HeuristicSignal(
+                        rule_name="obfuscation_detected",
+                        description="Prompt contains encoded or obfuscated content",
+                        severity=0.6,
+                    )
+                )
                 break
 
         # Rule 5: Urgency/authority indicators
@@ -221,24 +237,30 @@ class GuardAgent:
         ]
         for pattern in urgency_patterns:
             if re.search(pattern, prompt, re.IGNORECASE):
-                signals.append(HeuristicSignal(
-                    rule_name="urgency_authority",
-                    description="Prompt uses urgency or authority pressure tactics",
-                    severity=0.55,
-                ))
+                signals.append(
+                    HeuristicSignal(
+                        rule_name="urgency_authority",
+                        description="Prompt uses urgency or authority pressure tactics",
+                        severity=0.55,
+                    )
+                )
                 break
 
         # Rule 6: Multiple instruction-like sentences
-        instruction_indicators = prompt.lower().count("you must") + \
-            prompt.lower().count("you should") + \
-            prompt.lower().count("you will") + \
-            prompt.lower().count("you have to")
+        instruction_indicators = (
+            prompt.lower().count("you must")
+            + prompt.lower().count("you should")
+            + prompt.lower().count("you will")
+            + prompt.lower().count("you have to")
+        )
         if instruction_indicators >= 2:
-            signals.append(HeuristicSignal(
-                rule_name="multiple_instructions",
-                description=f"Prompt contains {instruction_indicators} directive statements",
-                severity=0.5,
-            ))
+            signals.append(
+                HeuristicSignal(
+                    rule_name="multiple_instructions",
+                    description=f"Prompt contains {instruction_indicators} directive statements",
+                    severity=0.5,
+                )
+            )
 
         return signals
 
@@ -266,7 +288,9 @@ class GuardAgent:
         confidence: float,
     ) -> str:
         """Build a human-readable explanation of the classification decision."""
-        parts = [f"Threat classification: {threat_level.value} (score: {threat_score:.3f}, confidence: {confidence:.3f})"]
+        parts = [
+            f"Threat classification: {threat_level.value} (score: {threat_score:.3f}, confidence: {confidence:.3f})"
+        ]
 
         # Vector evidence
         if retrieval.evidence:
@@ -282,14 +306,18 @@ class GuardAgent:
         # Keyword evidence
         if keyword_matches:
             kw_list = ", ".join(f"'{m.keyword}'" for m in keyword_matches[:3])
-            parts.append(f"Keywords: Matched {len(keyword_matches)} blocked term(s): {kw_list}.")
+            parts.append(
+                f"Keywords: Matched {len(keyword_matches)} blocked term(s): {kw_list}."
+            )
         else:
             parts.append("Keywords: No blocked terms detected.")
 
         # Heuristic evidence
         if heuristic_signals:
             rules = ", ".join(s.rule_name for s in heuristic_signals)
-            parts.append(f"Heuristics: {len(heuristic_signals)} rule(s) triggered: {rules}.")
+            parts.append(
+                f"Heuristics: {len(heuristic_signals)} rule(s) triggered: {rules}."
+            )
         else:
             parts.append("Heuristics: No structural anomalies detected.")
 

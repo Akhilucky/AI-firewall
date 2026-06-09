@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import time
 
-from ai_firewall.models import AttackType, RetrievalResult, RetrievedEvidence
+from ai_firewall.models import AttackType, RetrievalResult
 from ai_firewall.vector_db import VectorStore
 from ai_firewall.config import config
 
@@ -20,7 +20,7 @@ class RetrievalAgent:
     """
     Retrieval Agent — searches the vector database for semantically
     similar known attack patterns and returns grounded evidence.
-    
+
     This agent does NOT make decisions. It only retrieves and ranks evidence.
     Decisions are made by the Guard Agent and Policy Agent downstream.
     """
@@ -32,20 +32,21 @@ class RetrievalAgent:
     def analyze(self, prompt: str) -> RetrievalResult:
         """
         Search for similar attack patterns in the vector database.
-        
+
         Returns:
             RetrievalResult with ranked evidence and summary statistics.
         """
         start = time.perf_counter()
-        logger.info(f"Retrieval Agent: searching for similar patterns (top_k={self.top_k})")
+        logger.info(
+            f"Retrieval Agent: searching for similar patterns (top_k={self.top_k})"
+        )
 
         # Retrieve evidence from vector DB
         evidence = self.vector_store.search_attacks(prompt, top_k=self.top_k)
 
         # Filter by similarity threshold
         strong_evidence = [
-            e for e in evidence
-            if e.similarity_score >= config.similarity_threshold
+            e for e in evidence if e.similarity_score >= config.similarity_threshold
         ]
 
         # Compute statistics
@@ -57,10 +58,13 @@ class RetrievalAgent:
             avg_sim = 0.0
 
         # Collect matched attack types (from strong evidence only)
-        matched_types = list(set(
-            e.attack_type for e in strong_evidence
-            if e.attack_type != AttackType.SAFE
-        ))
+        matched_types = list(
+            set(
+                e.attack_type
+                for e in strong_evidence
+                if e.attack_type != AttackType.SAFE
+            )
+        )
 
         elapsed = (time.perf_counter() - start) * 1000
         logger.info(

@@ -141,11 +141,15 @@ async def handle_call_tool(name: str, arguments: dict) -> list[TextContent]:
         elif name == "benchmark_firewall":
             result = await _with_timeout(_handle_benchmark_firewall(arguments))
         else:
-            return [TextContent(type="text", text=_format_error(f"Unknown tool: {name}"))]
+            return [
+                TextContent(type="text", text=_format_error(f"Unknown tool: {name}"))
+            ]
         return result
     except asyncio.TimeoutError:
         logger.error(f"Tool '{name}' timed out after {TOOL_TIMEOUT}s")
-        return [TextContent(type="text", text=_format_error(f"Tool '{name}' timed out"))]
+        return [
+            TextContent(type="text", text=_format_error(f"Tool '{name}' timed out"))
+        ]
     except Exception as e:
         logger.error(f"Tool '{name}' failed: {e}", exc_info=True)
         return [TextContent(type="text", text=_format_error(str(e)))]
@@ -157,7 +161,9 @@ async def _with_timeout(coro) -> list[TextContent]:
 
 def _truncate_prompt(prompt: str) -> str:
     if len(prompt) > MAX_PROMPT_LENGTH:
-        logger.warning(f"Prompt truncated from {len(prompt)} to {MAX_PROMPT_LENGTH} chars")
+        logger.warning(
+            f"Prompt truncated from {len(prompt)} to {MAX_PROMPT_LENGTH} chars"
+        )
         return prompt[:MAX_PROMPT_LENGTH]
     return prompt
 
@@ -165,7 +171,14 @@ def _truncate_prompt(prompt: str) -> str:
 async def _handle_analyze_prompt(arguments: dict) -> list[TextContent]:
     raw = arguments.get("prompt", "")
     if not raw or not raw.strip():
-        return [TextContent(type="text", text=_format_error("'prompt' parameter is required and must be non-empty"))]
+        return [
+            TextContent(
+                type="text",
+                text=_format_error(
+                    "'prompt' parameter is required and must be non-empty"
+                ),
+            )
+        ]
 
     prompt = _truncate_prompt(raw.strip())
     orchestrator = get_orchestrator()
@@ -196,12 +209,16 @@ async def _handle_get_threat_breakdown(arguments: dict) -> list[TextContent]:
         prompt = _truncate_prompt(raw.strip())
         report = orchestrator.analyze_text(prompt)
     elif _last_prompt is None:
-        return [TextContent(
-            type="text",
-            text=_format_json({
-                "error": "No previous analysis. Call analyze_prompt first or provide a 'prompt' parameter."
-            }),
-        )]
+        return [
+            TextContent(
+                type="text",
+                text=_format_json(
+                    {
+                        "error": "No previous analysis. Call analyze_prompt first or provide a 'prompt' parameter."
+                    }
+                ),
+            )
+        ]
     else:
         report = orchestrator.analyze_text(_last_prompt)
 
@@ -212,7 +229,14 @@ async def _handle_get_threat_breakdown(arguments: dict) -> list[TextContent]:
 async def _handle_sanitize_prompt(arguments: dict) -> list[TextContent]:
     raw = arguments.get("prompt", "")
     if not raw or not raw.strip():
-        return [TextContent(type="text", text=_format_error("'prompt' parameter is required and must be non-empty"))]
+        return [
+            TextContent(
+                type="text",
+                text=_format_error(
+                    "'prompt' parameter is required and must be non-empty"
+                ),
+            )
+        ]
 
     prompt = _truncate_prompt(raw.strip())
     orchestrator = get_orchestrator()

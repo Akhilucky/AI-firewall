@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 # ── Enumerations ──────────────────────────────────────────────────────────────
 
+
 class ThreatLevel(str, Enum):
     SAFE = "SAFE"
     SUSPICIOUS = "SUSPICIOUS"
@@ -39,8 +40,10 @@ class AttackType(str, Enum):
 
 # ── Evidence & Analysis ───────────────────────────────────────────────────────
 
+
 class RetrievedEvidence(BaseModel):
     """A single piece of evidence retrieved from the vector database."""
+
     text: str
     attack_type: AttackType
     similarity_score: float = Field(ge=0.0, le=1.0)
@@ -49,6 +52,7 @@ class RetrievedEvidence(BaseModel):
 
 class KeywordMatch(BaseModel):
     """A keyword-based detection match."""
+
     keyword: str
     position: int
     context: str  # surrounding text
@@ -56,6 +60,7 @@ class KeywordMatch(BaseModel):
 
 class HeuristicSignal(BaseModel):
     """A signal from heuristic analysis."""
+
     rule_name: str
     description: str
     severity: float = Field(ge=0.0, le=1.0)
@@ -63,8 +68,10 @@ class HeuristicSignal(BaseModel):
 
 # ── Agent Outputs ─────────────────────────────────────────────────────────────
 
+
 class RetrievalResult(BaseModel):
     """Output from the Retrieval Agent."""
+
     evidence: list[RetrievedEvidence] = []
     max_similarity: float = 0.0
     avg_similarity: float = 0.0
@@ -73,6 +80,7 @@ class RetrievalResult(BaseModel):
 
 class GuardVerdict(BaseModel):
     """Output from the Guard Agent."""
+
     threat_level: ThreatLevel
     confidence: float = Field(ge=0.0, le=1.0)
     threat_score: float = Field(ge=0.0, le=1.0)
@@ -83,6 +91,7 @@ class GuardVerdict(BaseModel):
 
 class PolicyDecision(BaseModel):
     """Output from the Policy Agent."""
+
     action: FirewallAction
     policy_rules_triggered: list[str] = []
     sanitized_prompt: Optional[str] = None
@@ -91,14 +100,17 @@ class PolicyDecision(BaseModel):
 
 # ── Request / Response ────────────────────────────────────────────────────────
 
+
 class AnalyzeRequest(BaseModel):
     """Incoming request to analyze a prompt."""
+
     prompt: str = Field(..., min_length=1, max_length=10000)
     metadata: dict = Field(default_factory=dict)
 
 
 class FirewallReport(BaseModel):
     """Complete firewall analysis report for a prompt."""
+
     request_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:12])
     timestamp: str = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
@@ -122,6 +134,7 @@ class FirewallReport(BaseModel):
 
 class RedTeamResult(BaseModel):
     """Result of a red-team test."""
+
     test_id: str = Field(default_factory=lambda: str(uuid.uuid4())[:8])
     attack_prompt: str
     attack_type: AttackType

@@ -26,7 +26,7 @@ logger = logging.getLogger("ai_firewall.policy_agent")
 class PolicyAgent:
     """
     Policy Agent — the final arbiter of firewall decisions.
-    
+
     Consumes outputs from the Guard Agent and Retrieval Agent,
     applies explicit security policies, and produces an action:
     - ALLOW: Prompt passes through to the LLM
@@ -45,12 +45,12 @@ class PolicyAgent:
     ) -> PolicyDecision:
         """
         Make the final policy decision for a prompt.
-        
+
         Args:
             prompt: Original user prompt
             guard: Classification from Guard Agent
             retrieval: Evidence from Retrieval Agent
-            
+
         Returns:
             PolicyDecision with action, triggered rules, and explanation.
         """
@@ -82,7 +82,9 @@ class PolicyAgent:
             sanitized = self._sanitize_prompt(prompt)
             if sanitized != prompt:
                 action = FirewallAction.SANITIZE
-                triggered_rules.append("R3: SUSPICIOUS → SANITIZE (dangerous elements removed)")
+                triggered_rules.append(
+                    "R3: SUSPICIOUS → SANITIZE (dangerous elements removed)"
+                )
             else:
                 # Can't sanitize effectively → BLOCK in strict mode
                 if config.mode == "strict":
@@ -119,7 +121,7 @@ class PolicyAgent:
         # ── Rule 6: Length policy ─────────────────────────────────────────
         if len(prompt) > config.max_prompt_length and action == FirewallAction.ALLOW:
             action = FirewallAction.SANITIZE
-            sanitized = prompt[:config.max_prompt_length]
+            sanitized = prompt[: config.max_prompt_length]
             triggered_rules.append(
                 f"R6: Prompt exceeds {config.max_prompt_length} chars → SANITIZE (truncated)"
             )
@@ -135,7 +137,9 @@ class PolicyAgent:
         explanation = self._build_explanation(action, triggered_rules, policy_citations)
 
         elapsed = (time.perf_counter() - start) * 1000
-        logger.info(f"Policy Agent: decision={action.value}, rules={len(triggered_rules)}, took {elapsed:.1f}ms")
+        logger.info(
+            f"Policy Agent: decision={action.value}, rules={len(triggered_rules)}, took {elapsed:.1f}ms"
+        )
 
         return PolicyDecision(
             action=action,
