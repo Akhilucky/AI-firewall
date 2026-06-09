@@ -13,6 +13,8 @@
 
 **A multi-agent AI security system that protects LLMs from prompt injection, jailbreaks, and policy violations.**
 
+<mcp-name: io.github.Akhilucky/ai-firewall-mcp>
+
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Security: Active](https://img.shields.io/badge/Security-Active-red.svg)](#)

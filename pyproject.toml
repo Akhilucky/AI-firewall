@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-firewall-mcp"
-version = "1.0.0"
+version = "1.0.1"
 description = "MCP server for AI Firewall - multi-agent LLM security layer"
 readme = "README.md"
 license = "MIT"

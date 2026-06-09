@@ -20,7 +20,6 @@ import time
 from typing import Any
 
 from mcp.server import Server
-from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
@@ -30,7 +29,7 @@ from ai_firewall.orchestrator import FirewallOrchestrator
 
 logger = logging.getLogger("ai_firewall.mcp")
 
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 TOOL_TIMEOUT = 120.0
 MAX_PROMPT_LENGTH = 10000
 
@@ -274,7 +273,7 @@ def _handle_signal(signum, frame):
     sys.exit(0)
 
 
-async def main() -> None:
+async def _run() -> None:
     log_level = getattr(logging, os.environ.get("LOG_LEVEL", config.log_level).upper())
     logging.basicConfig(
         level=log_level,
@@ -292,16 +291,13 @@ async def main() -> None:
         await mcp_server.run(
             read_stream,
             write_stream,
-            InitializationOptions(
-                server_name="ai-firewall",
-                server_version=VERSION,
-                capabilities=mcp_server.get_capabilities(
-                    notification_options=mcp_server.notification_options,
-                    experimental_capabilities={},
-                ),
-            ),
+            mcp_server.create_initialization_options(),
         )
 
 
+def main() -> None:
+    asyncio.run(_run())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

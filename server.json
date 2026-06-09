@@ -1,0 +1,52 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Akhilucky/ai-firewall-mcp",
+  "title": "AI Firewall MCP",
+  "description": "Multi-agent LLM security layer detecting prompt injection and jailbreaks.",
+  "version": "1.0.1",
+  "websiteUrl": "https://github.com/Akhilucky/AI-firewall",
+  "repository": {
+    "url": "https://github.com/Akhilucky/AI-firewall",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "ai-firewall-mcp",
+      "version": "1.0.1",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ],
+  "install": {
+    "command": "ai-firewall-mcp",
+    "args": [],
+    "env": {}
+  },
+  "tools": [
+    {
+      "name": "analyze_prompt",
+      "description": "Analyze a prompt for injection, jailbreaks, exfiltration, and leakage threats"
+    },
+    {
+      "name": "get_threat_breakdown",
+      "description": "Return detailed per-signal scoring breakdown for the last analysis"
+    },
+    {
+      "name": "sanitize_prompt",
+      "description": "Clean suspicious prompts while preserving legitimate content"
+    },
+    {
+      "name": "get_firewall_status",
+      "description": "Health check with vector DB stats and model readiness"
+    },
+    {
+      "name": "benchmark_firewall",
+      "description": "Run adversarial test suite and return detection statistics"
+    }
+  ],
+  "clients": ["claude-desktop", "cursor", "windsurf", "cline", "roo-code"],
+  "keywords": ["security", "prompt-injection", "jailbreak", "firewall", "llm-security"],
+  "license": "MIT"
+}
