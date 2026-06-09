@@ -11,7 +11,10 @@ Transport: stdio
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
+import os
+import signal
 import sys
 import time
 from typing import Any
@@ -21,11 +24,15 @@ from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
-from src.ai_firewall.threat_scorer import ThreatScorer
-from src.config import config
-from src.orchestrator import FirewallOrchestrator
+from ai_firewall.threat_scorer import ThreatScorer
+from ai_firewall.config import config
+from ai_firewall.orchestrator import FirewallOrchestrator
 
 logger = logging.getLogger("ai_firewall.mcp")
+
+VERSION = "1.0.0"
+TOOL_TIMEOUT = 120.0
+MAX_PROMPT_LENGTH = 10000
 
 mcp_server = Server("ai-firewall")
 _orchestrator: FirewallOrchestrator | None = None
@@ -125,27 +132,43 @@ async def handle_list_tools() -> list[Tool]:
 async def handle_call_tool(name: str, arguments: dict) -> list[TextContent]:
     try:
         if name == "analyze_prompt":
-            return await _handle_analyze_prompt(arguments)
+            result = await _with_timeout(_handle_analyze_prompt(arguments))
         elif name == "get_threat_breakdown":
-            return await _handle_get_threat_breakdown(arguments)
+            result = await _with_timeout(_handle_get_threat_breakdown(arguments))
         elif name == "sanitize_prompt":
-            return await _handle_sanitize_prompt(arguments)
+            result = await _with_timeout(_handle_sanitize_prompt(arguments))
         elif name == "get_firewall_status":
-            return await _handle_get_firewall_status(arguments)
+            result = await _with_timeout(_handle_get_firewall_status(arguments))
         elif name == "benchmark_firewall":
-            return await _handle_benchmark_firewall(arguments)
+            result = await _with_timeout(_handle_benchmark_firewall(arguments))
         else:
-            return [TextContent(type="text", text=f"Unknown tool: {name}")]
+            return [TextContent(type="text", text=_format_error(f"Unknown tool: {name}"))]
+        return result
+    except asyncio.TimeoutError:
+        logger.error(f"Tool '{name}' timed out after {TOOL_TIMEOUT}s")
+        return [TextContent(type="text", text=_format_error(f"Tool '{name}' timed out"))]
     except Exception as e:
         logger.error(f"Tool '{name}' failed: {e}", exc_info=True)
-        return [TextContent(type="text", text=f"Error: {e}")]
+        return [TextContent(type="text", text=_format_error(str(e)))]
+
+
+async def _with_timeout(coro) -> list[TextContent]:
+    return await asyncio.wait_for(coro, timeout=TOOL_TIMEOUT)
+
+
+def _truncate_prompt(prompt: str) -> str:
+    if len(prompt) > MAX_PROMPT_LENGTH:
+        logger.warning(f"Prompt truncated from {len(prompt)} to {MAX_PROMPT_LENGTH} chars")
+        return prompt[:MAX_PROMPT_LENGTH]
+    return prompt
 
 
 async def _handle_analyze_prompt(arguments: dict) -> list[TextContent]:
-    prompt = arguments.get("prompt", "").strip()
-    if not prompt:
-        return [TextContent(type="text", text="Error: 'prompt' parameter is required and must be non-empty")]
+    raw = arguments.get("prompt", "")
+    if not raw or not raw.strip():
+        return [TextContent(type="text", text=_format_error("'prompt' parameter is required and must be non-empty"))]
 
+    prompt = _truncate_prompt(raw.strip())
     orchestrator = get_orchestrator()
     report = orchestrator.analyze_text(prompt)
 
@@ -166,11 +189,12 @@ async def _handle_analyze_prompt(arguments: dict) -> list[TextContent]:
 
 
 async def _handle_get_threat_breakdown(arguments: dict) -> list[TextContent]:
-    prompt = arguments.get("prompt", "").strip()
+    raw = arguments.get("prompt", "")
 
     orchestrator = get_orchestrator()
 
-    if prompt:
+    if raw and raw.strip():
+        prompt = _truncate_prompt(raw.strip())
         report = orchestrator.analyze_text(prompt)
     elif _last_prompt is None:
         return [TextContent(
@@ -187,10 +211,11 @@ async def _handle_get_threat_breakdown(arguments: dict) -> list[TextContent]:
 
 
 async def _handle_sanitize_prompt(arguments: dict) -> list[TextContent]:
-    prompt = arguments.get("prompt", "").strip()
-    if not prompt:
-        return [TextContent(type="text", text="Error: 'prompt' parameter is required and must be non-empty")]
+    raw = arguments.get("prompt", "")
+    if not raw or not raw.strip():
+        return [TextContent(type="text", text=_format_error("'prompt' parameter is required and must be non-empty"))]
 
+    prompt = _truncate_prompt(raw.strip())
     orchestrator = get_orchestrator()
     report = orchestrator.analyze_text(prompt)
 
@@ -237,19 +262,31 @@ async def _handle_benchmark_firewall(arguments: dict) -> list[TextContent]:
 
 
 def _format_json(data: dict) -> str:
-    import json
     return json.dumps(data, indent=2, default=str)
 
 
+def _format_error(message: str) -> str:
+    return json.dumps({"error": message})
+
+
+def _handle_signal(signum, frame):
+    logger.info(f"Received signal {signum}, shutting down...")
+    sys.exit(0)
+
+
 async def main() -> None:
+    log_level = getattr(logging, os.environ.get("LOG_LEVEL", config.log_level).upper())
     logging.basicConfig(
-        level=getattr(logging, config.log_level),
+        level=log_level,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         datefmt="%H:%M:%S",
         stream=sys.stderr,
     )
 
-    logger.info("Starting AI Firewall MCP server (stdio transport)")
+    signal.signal(signal.SIGTERM, _handle_signal)
+    signal.signal(signal.SIGINT, _handle_signal)
+
+    logger.info(f"Starting AI Firewall MCP server v{VERSION} (stdio transport)")
 
     async with stdio_server() as (read_stream, write_stream):
         await mcp_server.run(
@@ -257,7 +294,7 @@ async def main() -> None:
             write_stream,
             InitializationOptions(
                 server_name="ai-firewall",
-                server_version="1.0.0",
+                server_version=VERSION,
                 capabilities=mcp_server.get_capabilities(
                     notification_options=mcp_server.notification_options,
                     experimental_capabilities={},
@@ -267,8 +304,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        logger.info("MCP server shut down")
-        sys.exit(0)
+    asyncio.run(main())

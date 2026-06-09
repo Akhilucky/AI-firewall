@@ -10,7 +10,7 @@ import logging
 import re
 import time
 
-from src.models import (
+from ai_firewall.models import (
     AttackType,
     GuardVerdict,
     HeuristicSignal,
@@ -18,7 +18,7 @@ from src.models import (
     RetrievalResult,
     ThreatLevel,
 )
-from src.config import config
+from ai_firewall.config import config
 
 logger = logging.getLogger("ai_firewall.guard_agent")
 

@@ -9,9 +9,9 @@ from __future__ import annotations
 import logging
 import time
 
-from src.models import AttackType, RetrievalResult, RetrievedEvidence
-from src.vector_db import VectorStore
-from src.config import config
+from ai_firewall.models import AttackType, RetrievalResult, RetrievedEvidence
+from ai_firewall.vector_db import VectorStore
+from ai_firewall.config import config
 
 logger = logging.getLogger("ai_firewall.retrieval_agent")
 

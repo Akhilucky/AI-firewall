@@ -13,9 +13,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from src.models import AnalyzeRequest, FirewallReport, FirewallAction, ThreatLevel
-from src.orchestrator import FirewallOrchestrator
-from src.config import config
+from ai_firewall.models import AnalyzeRequest, FirewallReport, FirewallAction, ThreatLevel
+from ai_firewall.orchestrator import FirewallOrchestrator
+from ai_firewall.config import config
 
 logger = logging.getLogger("ai_firewall.api")
 

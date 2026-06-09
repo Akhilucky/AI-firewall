@@ -12,9 +12,9 @@ import os
 
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
 
-from src.ai_firewall.mcp_server import (
+from ai_firewall.mcp_server import (
     TOOL_DEFINITIONS,
     get_orchestrator,
     _handle_analyze_prompt,
@@ -72,12 +72,12 @@ class TestAnalyzePrompt:
         assert result["threat_level"] == "SAFE"
 
     def test_empty_prompt_returns_error(self):
-        result = _call_tool_raw("analyze_prompt", {"prompt": ""})
-        assert "Error" in result
+        result = json.loads(_call_tool_raw("analyze_prompt", {"prompt": ""}))
+        assert "error" in result
 
     def test_missing_prompt_returns_error(self):
-        result = _call_tool_raw("analyze_prompt", {})
-        assert "Error" in result
+        result = json.loads(_call_tool_raw("analyze_prompt", {}))
+        assert "error" in result
 
 
 class TestGetThreatBreakdown:
@@ -129,8 +129,8 @@ class TestSanitizePrompt:
         assert result["sanitized"] == result["original"]
 
     def test_empty_prompt_error(self):
-        result = _call_tool_raw("sanitize_prompt", {"prompt": ""})
-        assert "Error" in result
+        result = json.loads(_call_tool_raw("sanitize_prompt", {"prompt": ""}))
+        assert "error" in result
 
 
 class TestGetFirewallStatus:

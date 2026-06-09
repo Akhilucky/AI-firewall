@@ -12,9 +12,9 @@ from typing import Optional
 from sentence_transformers import SentenceTransformer
 import faiss
 
-from src.config import config
-from src.models import AttackType, RetrievedEvidence
-from src.data.attack_patterns import ATTACK_PATTERNS, SAFE_PROMPTS, SECURITY_POLICIES
+from ai_firewall.config import config
+from ai_firewall.models import AttackType, RetrievedEvidence
+from ai_firewall.data.attack_patterns import ATTACK_PATTERNS, SAFE_PROMPTS, SECURITY_POLICIES
 
 logger = logging.getLogger("ai_firewall.vector_db")
 

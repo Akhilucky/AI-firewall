@@ -10,15 +10,15 @@ import logging
 import re
 import time
 
-from src.models import (
+from ai_firewall.models import (
     FirewallAction,
     GuardVerdict,
     PolicyDecision,
     RetrievalResult,
     ThreatLevel,
 )
-from src.vector_db import VectorStore
-from src.config import config
+from ai_firewall.vector_db import VectorStore
+from ai_firewall.config import config
 
 logger = logging.getLogger("ai_firewall.policy_agent")
 

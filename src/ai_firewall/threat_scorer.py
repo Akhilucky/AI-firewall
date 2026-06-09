@@ -7,8 +7,8 @@ Provides the `get_threat_breakdown` tool output with per-signal scores.
 
 from __future__ import annotations
 
-from src.config import config
-from src.models import FirewallReport
+from ai_firewall.config import config
+from ai_firewall.models import FirewallReport
 
 
 class ThreatScorer:

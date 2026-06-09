@@ -7,7 +7,7 @@ name = "ai-firewall-mcp"
 version = "1.0.0"
 description = "MCP server for AI Firewall - multi-agent LLM security layer"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 
 authors = [
 { name = "Akhilesh" }
@@ -25,7 +25,6 @@ keywords = [
 classifiers = [
 "Development Status :: 4 - Beta",
 "Intended Audience :: Developers",
-"License :: OSI Approved :: MIT License",
 "Programming Language :: Python :: 3",
 "Programming Language :: Python :: 3.10",
 "Programming Language :: Python :: 3.11",
@@ -36,16 +35,19 @@ classifiers = [
 requires-python = ">=3.10"
 
 dependencies = [
-"mcp>=1.0.0",
-"fastapi>=0.104.0",
-"uvicorn>=0.24.0",
-"pydantic>=2.5.0",
-"sentence-transformers>=2.2.2",
-"faiss-cpu>=1.7.4",
-"numpy>=1.24.0",
-"rich>=13.7.0",
-"python-dotenv>=1.0.0",
-"httpx>=0.25.0"
+    "mcp>=1.0.0",
+    "pydantic>=2.5.0",
+    "sentence-transformers>=2.2.2",
+    "faiss-cpu>=1.7.4",
+    "numpy>=1.24.0",
+    "rich>=13.7.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
 ]
 
 [project.urls]

@@ -11,19 +11,19 @@ import logging
 import time
 from typing import Optional
 
-from src.models import (
+from ai_firewall.models import (
     AnalyzeRequest,
     FirewallAction,
     FirewallReport,
     RedTeamResult,
     ThreatLevel,
 )
-from src.agents.retrieval_agent import RetrievalAgent
-from src.agents.guard_agent import GuardAgent
-from src.agents.policy_agent import PolicyAgent
-from src.agents.redteam_agent import RedTeamAgent
-from src.vector_db import VectorStore, get_vector_store
-from src.config import config
+from ai_firewall.agents.retrieval_agent import RetrievalAgent
+from ai_firewall.agents.guard_agent import GuardAgent
+from ai_firewall.agents.policy_agent import PolicyAgent
+from ai_firewall.agents.redteam_agent import RedTeamAgent
+from ai_firewall.vector_db import VectorStore, get_vector_store
+from ai_firewall.config import config
 
 logger = logging.getLogger("ai_firewall.orchestrator")
 

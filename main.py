@@ -11,7 +11,10 @@ Usage:
 
 import argparse
 import logging
+import os
 import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'src'))
 
 
 def setup_logging(level: str = "INFO"):
@@ -65,7 +68,7 @@ Examples:
         # ── API Mode ─────────────────────────────────────────────────────
         setup_logging(log_level)
         import uvicorn
-        from src.config import config
+        from ai_firewall.config import config
         uvicorn.run(
             "src.api:app",
             host=config.api_host,
@@ -76,8 +79,8 @@ Examples:
 
     elif args.redteam:
         # ── Red-Team Mode ────────────────────────────────────────────────
-        from src.cli import print_banner, print_redteam_results, console
-        from src.orchestrator import FirewallOrchestrator
+        from ai_firewall.cli import print_banner, print_redteam_results, console
+        from ai_firewall.orchestrator import FirewallOrchestrator
         import time
 
         print_banner()
@@ -93,8 +96,8 @@ Examples:
 
     elif args.analyze:
         # ── Single Analysis Mode ─────────────────────────────────────────
-        from src.cli import print_banner, print_report, console
-        from src.orchestrator import FirewallOrchestrator
+        from ai_firewall.cli import print_banner, print_report, console
+        from ai_firewall.orchestrator import FirewallOrchestrator
 
         print_banner()
         with console.status("[bold cyan]Loading firewall...", spinner="dots"):
@@ -108,7 +111,7 @@ Examples:
     elif args.test:
         # ── Quick Self-Test ──────────────────────────────────────────────
         setup_logging(log_level)
-        from src.orchestrator import FirewallOrchestrator
+        from ai_firewall.orchestrator import FirewallOrchestrator
 
         print("🛡️  AI Firewall — Quick Self-Test")
         print("=" * 50)
@@ -135,7 +138,7 @@ Examples:
 
     else:
         # ── Interactive CLI Mode (default) ────────────────────────────────
-        from src.cli import run_interactive
+        from ai_firewall.cli import run_interactive
         run_interactive()
 
 

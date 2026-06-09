@@ -1,11 +1,13 @@
 """
-AI Firewall - MCP Server Package
+AI Firewall
 
-This package provides the MCP (Model Context Protocol) server interface
-for the AI Firewall, enabling integration with any MCP-compatible client
-including Claude Desktop, Cursor, Windsurf, Cline, and Roo Code.
+A multi-agent AI security system that protects LLMs from prompt injection,
+jailbreak attempts, and policy violations.
+
+Exposed as an MCP server for integration with Claude Desktop, Cursor,
+Windsurf, Cline, Roo Code, and any MCP-compatible client.
 """
 
-from src.ai_firewall.mcp_server import main, mcp_server
+from ai_firewall.mcp_server import main, mcp_server
 
 __all__ = ["main", "mcp_server"]

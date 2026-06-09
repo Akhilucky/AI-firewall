@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from src.models import (
+from ai_firewall.models import (
     AttackType,
     FirewallAction,
     RedTeamResult,

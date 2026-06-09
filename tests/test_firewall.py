@@ -7,17 +7,17 @@ import pytest
 import sys
 import os
 
-# Add project root to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add src dir to path so 'import ai_firewall' works
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
 
-from src.models import (
+from ai_firewall.models import (
     AnalyzeRequest,
     AttackType,
     FirewallAction,
     ThreatLevel,
 )
-from src.orchestrator import FirewallOrchestrator
-from src.vector_db import VectorStore
+from ai_firewall.orchestrator import FirewallOrchestrator
+from ai_firewall.vector_db import VectorStore
 
 
 @pytest.fixture(scope="module")

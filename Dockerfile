@@ -12,9 +12,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY pyproject.toml .
 COPY src/ src/
 
+RUN pip install --no-cache-dir -e .
+
 ENV FIREWALL_MODE=strict
 ENV LOG_LEVEL=INFO
 
-EXPOSE 8000
-
-ENTRYPOINT ["python", "-m", "src.ai_firewall.mcp_server"]
+ENTRYPOINT ["ai-firewall-mcp"]

@@ -19,9 +19,9 @@ from rich.live import Live
 from rich.align import Align
 from rich import box
 
-from src.models import FirewallAction, ThreatLevel, FirewallReport, RedTeamResult
-from src.orchestrator import FirewallOrchestrator
-from src.config import config
+from ai_firewall.models import FirewallAction, ThreatLevel, FirewallReport, RedTeamResult
+from ai_firewall.orchestrator import FirewallOrchestrator
+from ai_firewall.config import config
 
 console = Console()
 

@@ -4,7 +4,7 @@ Comprehensive dataset of known attack patterns for the vector database.
 Each entry contains the attack text, its type, and a description.
 """
 
-from src.models import AttackType
+from ai_firewall.models import AttackType
 
 # Format: (text, attack_type, description)
 ATTACK_PATTERNS: list[tuple[str, AttackType, str]] = [
