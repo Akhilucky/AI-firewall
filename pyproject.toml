@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-firewall-mcp"
@@ -8,42 +8,55 @@ version = "1.0.0"
 description = "MCP server for AI Firewall - multi-agent LLM security layer"
 readme = "README.md"
 license = { text = "MIT" }
+
 authors = [
-    { name = "Akhilesh Kumaravel" },
+{ name = "Akhilesh" }
 ]
+
 keywords = [
-    "mcp", "model-context-protocol", "ai-firewall",
-    "prompt-injection", "jailbreak", "llm-security",
+"mcp",
+"model-context-protocol",
+"ai-firewall",
+"prompt-injection",
+"jailbreak",
+"llm-security"
 ]
+
 classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Topic :: Security",
+"Development Status :: 4 - Beta",
+"Intended Audience :: Developers",
+"License :: OSI Approved :: MIT License",
+"Programming Language :: Python :: 3",
+"Programming Language :: Python :: 3.10",
+"Programming Language :: Python :: 3.11",
+"Programming Language :: Python :: 3.12",
+"Topic :: Security"
 ]
+
 requires-python = ">=3.10"
+
 dependencies = [
-    "mcp>=1.0.0",
-    "fastapi>=0.104.0",
-    "uvicorn>=0.24.0",
-    "pydantic>=2.5.0",
-    "sentence-transformers>=2.2.2",
-    "faiss-cpu>=1.7.4",
-    "numpy>=1.24.0",
-    "rich>=13.7.0",
-    "python-dotenv>=1.0.0",
-    "httpx>=0.25.0",
+"mcp>=1.0.0",
+"fastapi>=0.104.0",
+"uvicorn>=0.24.0",
+"pydantic>=2.5.0",
+"sentence-transformers>=2.2.2",
+"faiss-cpu>=1.7.4",
+"numpy>=1.24.0",
+"rich>=13.7.0",
+"python-dotenv>=1.0.0",
+"httpx>=0.25.0"
 ]
 
 [project.urls]
-Homepage = "https://github.com/akhilesh-k/ai-firewall"
-Repository = "https://github.com/akhilesh-k/ai-firewall"
+Homepage = "https://github.com/Akhilucky/AI-firewall"
+Repository = "https://github.com/Akhilucky/AI-firewall"
 
 [project.scripts]
-ai-firewall-mcp = "src.ai_firewall.mcp_server:main"
+ai-firewall-mcp = "ai_firewall.mcp_server:main"
+
+[tool.setuptools]
+include-package-data = true
 
 [tool.setuptools.package-dir]
 "" = "src"
@@ -55,10 +68,12 @@ include = ["ai_firewall*"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+
 markers = [
-    "mcp: MCP server integration tests",
-    "firewall: Core firewall functionality tests",
+"mcp: MCP server integration tests",
+"firewall: Core firewall functionality tests"
 ]
+
 filterwarnings = [
-    "ignore::DeprecationWarning",
+"ignore::DeprecationWarning"
 ]
