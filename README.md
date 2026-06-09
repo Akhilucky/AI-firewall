@@ -73,6 +73,118 @@ Threat Score = 0.40 × Vector Similarity
 
 ---
 
+## 🔌 MCP Server
+
+The AI Firewall is available as an **MCP (Model Context Protocol) server**, enabling integration with any MCP-compatible client:
+
+| Client | Status |
+|--------|--------|
+| Claude Desktop | ✅ Supported |
+| Cursor | ✅ Supported |
+| Windsurf | ✅ Supported |
+| Cline | ✅ Supported |
+| Roo Code | ✅ Supported |
+| OpenHands | ✅ Supported |
+| Any MCP client | ✅ Compatible |
+
+### MCP Tools
+
+The server exposes 5 tools:
+
+| Tool | Description |
+|------|-------------|
+| `analyze_prompt` | Analyze a prompt for injection, jailbreaks, exfiltration, and leakage |
+| `get_threat_breakdown` | Return detailed per-signal scoring breakdown |
+| `sanitize_prompt` | Return a cleaned version of a suspicious prompt |
+| `get_firewall_status` | Check firewall health, vector DB size, model status |
+| `benchmark_firewall` | Run adversarial test suite and return stats |
+
+### Installation
+
+```bash
+pip install ai-firewall-mcp
+```
+
+### Usage (stdio)
+
+```bash
+ai-firewall-mcp
+```
+
+The MCP server uses stdio transport — it reads JSON-RPC messages from stdin and writes responses to stdout. Most clients handle this automatically when you configure the command.
+
+### Claude Desktop Setup
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "ai-firewall": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/ai-firewall",
+        "run",
+        "ai-firewall-mcp"
+      ],
+      "env": {
+        "FIREWALL_MODE": "strict",
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}
+```
+
+### Cursor Setup
+
+In Cursor, go to **Settings → MCP Servers → Add New** and use:
+
+```
+Name: ai-firewall
+Type: stdio
+Command: uv --directory /path/to/ai-firewall run ai-firewall-mcp
+Environment: FIREWALL_MODE=strict
+```
+
+### Cline / Roo Code Setup
+
+In your MCP settings file (`~/.config/cline/mcp_settings.json` or similar):
+
+```json
+{
+  "mcpServers": {
+    "ai-firewall": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "/path/to/ai-firewall",
+        "run",
+        "ai-firewall-mcp"
+      ]
+    }
+  }
+}
+```
+
+### Testing with MCP Inspector
+
+```bash
+npx @modelcontextprotocol/inspector ai-firewall-mcp
+```
+
+This launches a web UI where you can test all tools interactively.
+
+### Docker
+
+```bash
+docker build -t ai-firewall-mcp .
+docker run -i ai-firewall-mcp
+```
+
+---
+
 ## 🚀 Quick Start
 
 ### 1. Install Dependencies
@@ -150,6 +262,12 @@ curl -X POST http://localhost:8000/analyze/quick \
 pytest tests/ -v
 ```
 
+### Run MCP-Specific Tests
+
+```bash
+pytest tests/test_mcp.py -v
+```
+
 ### What Gets Tested
 
 - ✅ **Prompt injection** — instruction overrides, fake system messages, extraction attacks
@@ -160,6 +278,11 @@ pytest tests/ -v
 - ✅ **Safe prompts** — coding questions, factual queries, writing help
 - ✅ **Edge cases** — short prompts, long prompts, mixed content
 - ✅ **Red-team integration** — full adversarial suite with ≥75% pass rate
+- ✅ **MCP tools** — all 5 tools callable, error handling, input validation
+- ✅ **Threat breakdown** — detailed per-signal scoring accuracy
+- ✅ **Sanitization** — suspicious prompt cleaning, safe prompt passthrough
+- ✅ **Firewall status** — health check, vector DB stats, model readiness
+- ✅ **Benchmarking** — attack dataset statistics with pass rate validation
 
 ---
 
@@ -167,35 +290,48 @@ pytest tests/ -v
 
 ```
 AI firewall/
-├── main.py                  # Entry point (CLI, API, red-team, self-test)
-├── requirements.txt         # Python dependencies
-├── claude.md                # AI assistant instructions
-├── skills.md                # Skills documentation
-├── .env.example             # Environment configuration template
+├── main.py                     # Entry point (CLI, API, red-team, self-test)
+├── requirements.txt            # Python dependencies
+├── pyproject.toml              # Package configuration & metadata
+├── claude.md                   # AI assistant instructions
+├── .env.example                # Environment configuration template
+├── Dockerfile                  # Docker image for MCP server
+├── docker-compose.yml          # Docker Compose configuration
+├── claude_desktop_config.json  # Claude Desktop MCP config template
 │
 ├── src/
 │   ├── __init__.py
-│   ├── config.py            # Centralized configuration
-│   ├── models.py            # Pydantic data models
-│   ├── vector_db.py         # FAISS vector store + embeddings
-│   ├── orchestrator.py      # Agent pipeline orchestration
-│   ├── api.py               # FastAPI REST server
-│   ├── cli.py               # Rich interactive CLI dashboard
+│   ├── config.py               # Centralized configuration
+│   ├── models.py               # Pydantic data models
+│   ├── vector_db.py            # FAISS vector store + embeddings
+│   ├── orchestrator.py         # Agent pipeline orchestration
+│   ├── api.py                  # FastAPI REST server
+│   ├── cli.py                  # Rich interactive CLI dashboard
+│   │
+│   ├── ai_firewall/            # MCP Server Package
+│   │   ├── __init__.py
+│   │   ├── mcp_server.py       # MCP server (5 tools, stdio transport)
+│   │   └── threat_scorer.py    # Detailed scoring breakdown utility
 │   │
 │   ├── agents/
 │   │   ├── __init__.py
-│   │   ├── retrieval_agent.py   # RAG-based evidence search
-│   │   ├── guard_agent.py       # Multi-signal threat classifier
-│   │   ├── policy_agent.py      # Allow/block/sanitize decisions
-│   │   └── redteam_agent.py     # Adversarial test generation
+│   │   ├── retrieval_agent.py  # RAG-based evidence search
+│   │   ├── guard_agent.py      # Multi-signal threat classifier
+│   │   ├── policy_agent.py     # Allow/block/sanitize decisions
+│   │   └── redteam_agent.py    # Adversarial test generation
 │   │
 │   └── data/
 │       ├── __init__.py
-│       └── attack_patterns.py   # Seed data: attacks, safe prompts, policies
+│       └── attack_patterns.py  # Seed data: attacks, safe prompts, policies
 │
-└── tests/
-    ├── __init__.py
-    └── test_firewall.py     # Comprehensive test suite
+├── tests/
+│   ├── __init__.py
+│   ├── test_firewall.py        # Comprehensive firewall test suite
+│   └── test_mcp.py             # MCP server integration tests
+│
+└── .github/
+    └── workflows/
+        └── ci.yml              # CI/CD: tests, lint, build, docker, publish
 ```
 
 ---
@@ -245,6 +381,7 @@ This project demonstrates:
 5. **Security Engineering** — Zero trust, fail-safe defaults, defense in depth applied to AI systems
 6. **Adversarial Testing** — Built-in red-team suite that validates the system catches known attack patterns
 7. **Production-Ready Design** — REST API, configurable modes, audit logging, comprehensive tests
+8. **MCP Protocol Integration** — Model Context Protocol server compatible with Claude Desktop, Cursor, Windsurf, Cline, and any MCP client
 
 ---
 
